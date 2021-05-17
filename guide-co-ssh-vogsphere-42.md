@@ -35,7 +35,7 @@ Il suffit de rapatrier le couple clé privée / publique généré depuis son de
 * Niveau tranfert, comment accéder à sa clé alors qu'on est à distance ? Puisqu'on ne peut pas télécharger depuis Guacamole vers son poste, sauf si on clique sur "Download your HOME", avant d'accéder à vnc sur la page de connexion à Guacamole *(et je ne sais pas ce que ca donne car je ne l'ai jamais fait)*. Soit on recopie à la main sa clé privée (bon courage), soit on la transfère sur GitHub (oulàlà l'alerte de sécurité de GitHub qui se profile à l'horizon), soit on va à l'école avec une clé USB et on récupère ces données. Je vous laisse choisir votre mode de transfert si vous souhaitez passer par cette méthode.
 
 Toujours est-il que vous devrez vous assurer des droits sur ces fichiers.
-Le fichier **id_rsa.pub** (ou le nom que vous avez attribué à votre cle publique) doit avoir les droits **644** et le fichier **id_rsa** (ou le nom que vous avez attribué a votre cle privée) doit avoir les droits **600**.
+Le fichier **id_rsa.pub** (ou le nom que vous avez attribué à votre clé publique) doit avoir les droits **644** et le fichier **id_rsa** (ou le nom que vous avez attribué à votre cle privée) doit avoir les droits **600**.
 
 Etape 2 :
 ---------
@@ -63,6 +63,8 @@ Eh oui, c'est la limite de l'Intra, vous devez détruire votre ancienne clé pub
 
 Vous trouverez votre clé publique dans votre repertoire **.ssh**, si vous n'avez apporté aucune modification, elle devrait s'appeler **id_rsa.pub**. Vous copiez votre clé, soit en ouvrant le fichier, soit en le ```cat```, et vous l'ajoutez dans l'intra, validez si on vous le demande.
 
+Si vous avez choisi la méthode 2, normalement la clé publique sur votre Intra est celle correspondant à votre clé privée, il n'y a pas besoin de la changer.
+
 Etape 4 :
 ---------
 
@@ -82,7 +84,7 @@ De la sorte, vous n'aurez plus besoin d'utiliser aussi souvent **vnc**, et vous 
 
 Etape 6 :
 ---------
-La magie s'arrête à chaque fois que vous fermerez votre console. Donc à chaque ouverture de console, il faudra redemarrer votre agent ssh, lui passer la clé privée etc.
+La magie s'arrête à chaque fois que vous fermerez votre console. Donc à chaque ouverture de console, il faudra redémarrer votre agent ssh, lui passer la clé privée etc.
 Personnellement, je passe par un alias, pour ne pas me retaper toutes les commandes à chaque connexion, je viens meme de lire sur GitHub qu'on peut utiliser leur script pour automatiser la connexion à chaque ouverture du terminal. Je vous soumets ma proposition et je vous mets le lien vers GitHub qui explique comment créer ce script.
 
 Dans le fichier de configuration de votre terminal (.bashrc, .zshrc, etc ou à créer si inexistant) :
@@ -96,11 +98,12 @@ Pour que l'alias soit pris en compte, il faut redémarrer sa console (et donc se
 La procédure GitHub : https://docs.github.com/en/github/authenticating-to-github/working-with-ssh-key-passphrases
 
 Sinon, vous pouvez également utiliser cette procédure pour travailler avec vos repo git, l'avantage c'est que vous n'aurez pas à vous authentifier username/passwd à chaque push. https://docs.github.com/en/github/authenticating-to-github/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent. De toute façon, il semblerait que GitHub ait décidé de passer full ssh... la méthode username/passwd est amenée à disparaître.
-Pensez bien à récupérer les URL en mode ssh et à les ajouter tels quels dans vos remote.
+
+Pensez bien à récupérer les URL en mode ssh et à les ajouter tels quels dans vos remotes.
 
 Dernier point :
 ---------------
-Il est possible de travailler sur 2 remote en meme temps ! C'est-à-dire que vous pouvez à la fois push sur votre compte GitHub ET sur le serveur Vogsphere, EN MEME TEMPS. Pas besoin de double push. Il faut juste avoir demarré l'agent ssh avec les 2 clés privées (une pour chaque remote). On fait deux fois ```ssh-add cle-privee``` + deux fois ```ssh -T```. On ne fait qu'une seule fois ```eval "$(ssh-agent -s)"```.
+Il est possible de travailler sur 2 remotes en même temps ! C'est-à-dire que vous pouvez à la fois push sur votre compte GitHub ET sur le serveur Vogsphere, EN MEME TEMPS. Pas besoin de double push. Il faut juste avoir démarré l'agent ssh avec les 2 clés privées (une pour chaque remote). On fait deux fois ```ssh-add cle-privee``` + deux fois ```ssh -T```. On ne fait qu'une seule fois ```eval "$(ssh-agent -s)"``` *(Les commandes sont volontairement raccourcies, tapez-les bien en entier comme je vous l'ai indiqué plus haut. Faites un alias de cette suite de commandes, le principe reste le même que celui plus haut)*.
 
 C'est assez simple : à la base de votre repo, là où se trouve votre répertoire caché **.git** vous entrez, dans une console :
 
@@ -110,7 +113,7 @@ git remote set-url --add --push origin [URL_REMOTE2]
 
 Le premier remote étant déjà renseigné grâce au clone du repo, il n'y a qu'à indiquer l'adresse du second. Attention, les URL en SSH sont du style *git@github:USERNAME/REPO.git*, faites-y attention, sinon vous aurez des surprises.
 
-Il arrive que git bug avec cette instruction *(je dois m'y prendre comme un pied, en vrai)*, dans ce cas-là on contourne le problème en écrivant directement dans le fichier de configuration, l'adresse du remote à ajouter :
+Il arrive que git bug avec cette instruction *(je dois m'y prendre comme un pied, en vrai)*, dans ce cas-là, on contourne le problème en écrivant directement dans le fichier de configuration, l'adresse du remote à ajouter :
 
 ```
 vim .git/config
@@ -124,7 +127,7 @@ Vous allez trouver quelque chose comme ça
         fetch = +refs/heads/*:refs/remotes/origin/*
 ```
 
-Donc entre la ligne url et la ligne fetch vous ajouterez la ligne suivante :
+Donc entre la ligne ```url``` et la ligne ```fetch``` vous ajouterez la ligne suivante :
 
 ```
 pushurl = git@github.com:USERNAME/VOTRE_REPO.git
@@ -139,6 +142,6 @@ Ce qui donne :
         fetch = +refs/heads/*:refs/remotes/origin/*
 ```
 
-Le double push est mis en place normalement.
- 
+Le double push est mis en place normalement. Le serveur sur lequel vous tirerez vos infos (```git pull```) est celui indiqué par ```url```.
+
 Voilà, c'est tout pour le maintenant.
